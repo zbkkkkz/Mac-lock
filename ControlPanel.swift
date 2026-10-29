@@ -1,21 +1,30 @@
 import SwiftUI
 import ServiceManagement
 
-@available(macOS 26.0, *)
 struct ControlPanel: View {
     @ObservedObject var state: WorkspaceState
     let quit: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        GlassEffectContainer(spacing: 24) {
+        Group {
+            if #available(macOS 26.0, *), !ProcessInfo.processInfo.arguments.contains("--legacy-ui") {
+                GlassEffectContainer(spacing: 24) { panelContent }
+            } else { panelContent }
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: state.isLocked)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: quit) { Label("退出 Mac lock", systemImage: "power") }
+                    .help("恢复输入并退出 Mac lock")
+            }
+        }
+    }
+
+    private var panelContent: some View {
             VStack(spacing: 24) {
                 VStack(spacing: 14) {
-                    Image(systemName: state.isLocked ? "lock.fill" : "lock.open")
-                        .font(.system(size: 30, weight: .medium))
-                        .contentTransition(.symbolEffect(.replace))
-                        .frame(width: 80, height: 80)
-                        .glassEffect(.regular, in: .circle)
+                    statusIcon
                     VStack(spacing: 6) {
                         Text(state.isLocked ? "输入已锁定" : "随时就绪")
                             .font(.system(size: 27, weight: .semibold))
@@ -36,15 +45,7 @@ struct ControlPanel: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
 
-                Button { state.switchLock() } label: {
-                    Label(state.isLocked ? "恢复输入" : "开启锁定", systemImage: state.isLocked ? "lock.open" : "lock")
-                        .font(.system(size: 15, weight: .semibold))
-                        .frame(maxWidth: .infinity, minHeight: 32)
-                }
-                .buttonStyle(.glassProminent).controlSize(.large)
-                .tint(state.isLocked ? .green : .accentColor)
-                .buttonBorderShape(.roundedRectangle(radius: 16))
-                .keyboardShortcut(.return, modifiers: [])
+                primaryAction
 
                 GroupBox {
                     VStack(spacing: 16) {
@@ -77,13 +78,36 @@ struct ControlPanel: View {
                 }
             }
             .padding(28).frame(width: 500)
+    }
+
+    @ViewBuilder private var statusIcon: some View {
+        if #available(macOS 26.0, *), !ProcessInfo.processInfo.arguments.contains("--legacy-ui") {
+            iconContent.contentTransition(.symbolEffect(.replace))
+                .glassEffect(.regular, in: .circle)
+        } else {
+            iconContent.background(.regularMaterial, in: Circle())
         }
-        .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: state.isLocked)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("退出 Mac lock", systemImage: "power", action: quit)
-                    .help("恢复输入并退出 Mac lock")
-            }
+    }
+
+    private var iconContent: some View {
+        Image(systemName: state.isLocked ? "lock.fill" : "lock.open")
+            .font(.system(size: 30, weight: .medium)).frame(width: 80, height: 80)
+    }
+
+    private var actionContent: some View {
+        Button { state.switchLock() } label: {
+            Label(state.isLocked ? "恢复输入" : "开启锁定", systemImage: state.isLocked ? "lock.open" : "lock")
+                .font(.system(size: 15, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 32)
+        }.controlSize(.large).tint(state.isLocked ? .green : .accentColor)
+            .keyboardShortcut(.return, modifiers: [])
+    }
+
+    @ViewBuilder private var primaryAction: some View {
+        if #available(macOS 26.0, *), !ProcessInfo.processInfo.arguments.contains("--legacy-ui") {
+            actionContent.buttonStyle(.glassProminent)
+                .buttonBorderShape(.roundedRectangle(radius: 16))
+        } else {
+            actionContent.buttonStyle(.borderedProminent).buttonBorderShape(.roundedRectangle)
         }
     }
 

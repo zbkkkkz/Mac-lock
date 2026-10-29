@@ -1,12 +1,12 @@
 # Mac lock
 
-一键暂停 Mac 的键盘输入，清洁桌面时更省心。采用原生 SwiftUI Liquid Glass，提供中文界面、菜单栏开关和 Dock 图标。
+一键暂停 Mac 的键盘输入，清洁桌面时更省心。macOS 26+ 采用原生 SwiftUI Liquid Glass，macOS 13–15 使用原生材质与标准控件，提供中文界面、菜单栏开关和 Dock 图标。
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/yiz965689-max/Mac-lock/releases/latest) 下载 `Mac-lock-2.1.0-macOS.zip`。
+从 [GitHub Releases](https://github.com/yiz965689-max/Mac-lock/releases/latest) 下载 `Mac-lock-2.2.0-macOS.zip`。
 
-**系统要求：macOS 26 或更高版本，Apple Silicon（M 系列芯片）。目前不提供 Intel 版本。**
+**系统要求：macOS 13 Ventura 或更高版本，Apple Silicon（M 系列芯片）。目前不提供 Intel 版本。**
 
 ## 安装与授权
 
@@ -49,7 +49,7 @@ swiftc -parse-as-library InputGate.swift Tests/InputGateChecks.swift -o /tmp/mac
 
 ## 验证范围
 
-v2.1.0 已完成编译、签名验证、Esc 手势和事件范围逻辑测试，以及本机界面启动、退出和登录项注册检查。当前发行版本的物理键盘/触控板锁定恢复、不同硬件和重启登录行为尚未完成全面验证。首次使用请先测试仅锁键盘，并确认 Esc 恢复方式后再使用全锁。
+v2.2.0 已完成编译、签名验证、Esc 手势和事件范围逻辑测试，以及本机界面启动、退出和登录项注册检查。二进制最低系统版本已检查为 macOS 13.0；现代与降级界面均在 macOS 26 上检查。macOS 13、14、15 真机或虚拟机尚未实测，不能将降级界面检查视为这些系统的运行验证。当前发行版本的物理键盘/触控板锁定恢复、不同硬件和重启登录行为尚未完成全面验证。首次使用请先测试仅锁键盘，并确认 Esc 恢复方式后再使用全锁。
 
 ## 实现说明
 
@@ -58,3 +58,9 @@ v2.1.0 已完成编译、签名验证、Esc 手势和事件范围逻辑测试，
 - [CoreGraphics CGEvent](https://developer.apple.com/documentation/coregraphics/cgevent)
 - [SMAppService](https://developer.apple.com/documentation/servicemanagement/smappservice)
 - [SwiftUI Liquid Glass](https://developer.apple.com/documentation/swiftui/glasseffectcontainer)
+
+## 界面兼容性
+
+macOS 26 专属 API 通过运行时版本检查隔离；macOS 13–15 使用标准按钮与系统材质，锁定方式和功能保持一致。编译仍需要 macOS 26 SDK，以包含新系统 API 定义；运行应用不要求安装开发工具。
+
+开发时可用 `open -a "Mac lock" --args --legacy-ui` 预览降级界面；这只是界面预览，不模拟旧版操作系统。
